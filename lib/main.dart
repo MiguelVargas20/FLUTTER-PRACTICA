@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/tarjeta.dart';
+import 'package:flutter_application_1/formulario.dart';
+
 
 void main() {
-  runApp(const Tarjeta());
+  runApp(
+    const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Formulario(),
+    ));
+
+
 }
