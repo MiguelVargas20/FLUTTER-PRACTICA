@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_locations.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 
 class RegistroUsuario extends StatelessWidget {
@@ -15,8 +16,8 @@ class RegistroUsuario extends StatelessWidget {
 
       localizationsDelegates: const[
         GlobalMaterialLocalizations.delegate,
-        GlobalWidgetLocalizations.delegate,
-        GlobalCupertLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
 
       ],
       home: RegistroUsuario(),
@@ -46,6 +47,12 @@ String rol = "Usuario";
 
 //Variable de fecha vacia - Tambien se puede establecer con un valor
 DateTime? fechaNacimiento;
+
+//Variable acepta Terminos
+bool aceptaTerminos = false;
+
+//Variable swith notificacion
+bool notificaciones = false;
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +90,18 @@ DateTime? fechaNacimiento;
                     prefixIcon: Icon(Icons.person)
 
                   ),
+
+                  //Validaciones del campo Nombre Usuario
+                  validator: (value) {
+
+                    //Valida cuando el nombre va vacio
+                    if (value == null || value.isEmpty) {
+                      return "Porfavor, ingresa tu nombre";
+                    }
+
+                    //Aca se indica que si esta el nombre no haga nada 
+                    return null;
+                  },
                 ),
 
                 const SizedBox(height: 20),
@@ -100,6 +119,16 @@ DateTime? fechaNacimiento;
                     prefixIcon: Icon(Icons.email),
                   ),
                   
+                  validator: (value){
+
+                    //Validar que el arroba este en en Correo electrnico
+                    if (value == null || value.isEmpty || !value.contains("@")){
+                      return "Porfavor, ingresa tu correo electrónico";
+                    }
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)){
+                      return "Porfavor, ingresa un correo electrónico válido";}
+                    
+                  },
                 ),
 
                 const SizedBox(height: 20),
@@ -109,7 +138,11 @@ DateTime? fechaNacimiento;
                   controller: phoneController,
 
                   //Validacion numeros en telefono
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+
 
                   decoration: const InputDecoration(
                     labelText: "Numero Telefonico",
@@ -117,6 +150,19 @@ DateTime? fechaNacimiento;
                     prefixIcon: Icon(Icons.phone),
 
                   ),
+
+                  //Validacion telefono
+                  validator: (value) {
+
+                    if (value == null || value.isEmpty){
+                      return "Porfavor, ingresa tu telefono";
+                    }
+                    if(value.length < 10){
+                      return "Porfavor ingresa un telefono válido";
+                    }
+                    return null;
+                    },
+
                 ),
 
                 const SizedBox(height: 20),
@@ -133,6 +179,19 @@ DateTime? fechaNacimiento;
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.lock),
                   ),
+
+                  //Validacion contraseña
+                  validator: (value) {
+
+                    if (value == null || value.isEmpty){
+                      return "Porfavor, ingresa tu contraseña";
+                    }
+                    if(value.length < 8){
+                      return "Porfavor ingresa una contraseña mayor a 8 carácteres";
+                    }
+                    return null;
+                    },
+
                 ),
 
                 //Lista roles
@@ -198,17 +257,62 @@ DateTime? fechaNacimiento;
                       //Si fecha es 
                           if (fecha != null){
                             setState(() {
-                              
-                            });
-
+                              fechaNacimiento = fecha;
+                              });
                           }
                       },
                   )
 
+                ),
+
+                const SizedBox(height: 20),
+
+                //Checkbox condiciones y terminos
+                CheckboxListTile(
+                  title: const Text("Acepto los terminos y condiciones"),
+                  value: aceptaTerminos,
+                  onChanged: (value){
+                    setState(() {
+                      //Actualizar el estado del checkbox
+                      aceptaTerminos = value!;
+                    });
+                  }),
+
+                  SizedBox(height: 20,),
+
+                  //Switch para recibir notificaciones
+                  SwitchListTile(
+                    title: const Text("Recibir notificaciones"),
+                    value: notificaciones,
+                    onChanged: (value){
+                      setState(() {
+                        notificaciones = value;
+                      });
+                    }),
+                  
+                  const SizedBox(height: 20,),
+
+                  //CheckboxListTittle
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed:(){
+                      //Logica para validar el formulario y registrar usuario(opcional)
+
+                      //Valida los campos del formulario y el aceptar Terminos que este seleccionado para imprimir que esta procesando el registro
+                      if (_formkey.currentState!.validate() && aceptaTerminos) {
+                        print("Formulario válido, Procesar registro");
+
+                      //La variable acepta terminos por default es false entonces cuando no esta completa manda el else que requiere los campos/acceptTerms
+                      } else {
+                        print("Porfavor, complete el formulario y acepte los terminos",);
+                      }
+                    },
+                    child: const Text("Registrar"),
+                  ),
                 )
-
-
-            ],
+              ],
           ), 
         ),
       ),
