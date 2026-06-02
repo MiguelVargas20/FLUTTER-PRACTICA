@@ -14,7 +14,7 @@ class RegistroUsuario extends StatelessWidget {
       supportedLocales: [Locale('es', 'ES'),
       ],
 
-      localizationsDelegates: const[
+      localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
@@ -127,6 +127,7 @@ bool notificaciones = false;
                     }
                     if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)){
                       return "Porfavor, ingresa un correo electrónico válido";}
+                    return null;
                     
                   },
                 ),
@@ -198,7 +199,7 @@ bool notificaciones = false;
                 const SizedBox(height: 20),
 
                 DropdownButtonFormField<String>(
-                  value: rol,
+                  initialValue: rol,
 
                   decoration: const InputDecoration(
                     labelText: "Rol",
