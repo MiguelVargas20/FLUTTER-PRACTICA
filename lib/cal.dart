@@ -1,99 +1,88 @@
 import 'package:flutter/material.dart';
 
-class Calculadora extends StatefulWidget{
-  const Calculadora ({super.key});
+class Calculadora extends StatefulWidget {
+  const Calculadora({super.key});
 
-@override
-State<Calculadora> createState() => _CalculadoraState();
-} 
+  @override
+  State<Calculadora> createState() => _CalculadoraState();
+}
 
-class _CalculadoraState extends State<Calculadora>{
-  String operacion ="";
-  String resultado ="0";
+class _CalculadoraState extends State<Calculadora> {
+  String operacion = "";
+  String resultado = "0";
   String numeroActual = "";
   List<String> elementos = [];
+  List<String> calculo = [];
 
-
-
-//
   @override
-  Widget build (BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SafeArea(child: Column(
-        children: [
-          //Expanded es para children, 
-          Expanded(
-            child: Container(
-              //Es un atributo de un input, no se puede colocar un double infinity en el children, solo en el child
-              width: double.infinity,
-
-              //20 se refiere a puntos no a pixeles (medida usada en desarrollo móvil)
-              padding: const EdgeInsets.all(40),
-              child: Column(
-                //Alinea al ancho
-                mainAxisAlignment: MainAxisAlignment.end,
-
-                //Alinea al alto 
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(operacion,
-                  style: TextStyle(color: Colors.white, fontSize: 25),
-                  ),
-
-                  SizedBox(height: 10),
-                  Text(
-                    resultado,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      operacion,
+                      style: TextStyle(color: Colors.white, fontSize: 25),
                     ),
-                  ),
-],
+                    SizedBox(height: 10),
+                    Text(
+                      resultado,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            ),
-            Row(children: [boton("CA"), boton("CE"),  boton ("←"), boton("")]),
-            Row(children: [boton("7") , boton("8"),  boton ("9"), boton("/")]),
-            Row(children: [boton("4") , boton("5"),  boton ("6"), boton("*")]),
-            Row(children: [boton("1") , boton("2"),  boton ("3"), boton("-")]),
-            Row(children: [boton("0") , boton("."),  boton ("="), boton("+")]),
-
+            Row(children: [boton('CA'), boton('CE'), boton('←'), boton('')]),
+            Row(children: [boton('7'), boton('8'), boton('9'), boton('/')]),
+            Row(children: [boton('4'), boton('5'), boton('6'), boton('*')]),
+            Row(children: [boton('1'), boton('2'), boton('3'), boton('-')]),
+            Row(children: [boton('0'), boton('.'), boton('='), boton('+')]),
           ],
-      ))
-
+        ),
+      ),
     );
-  }
+  } //build
 
-  void actionBoton(String valor){
-    //print(valor);
-    //Actualizarse
+  void actionBoton(String valor) {
+    //Primero print(valor);
+    //Luego
     setState(() {
       switch (valor) {
-        case "CE":
-          // Borra absolutamente todo
-          operacion = "";
-          break;
-
-        case "CA":
-          // Limpia la operación actual (puedes dejar el resultado anterior intacto)
+        case 'CA':
           operacion = "";
           resultado = "0";
-          break;
+          numeroActual = "";
+          elementos.clear();
+          return;
 
-        case "←":
-          // Elimina solo el último carácter si la cadena no está vacía
+        case 'CE':
+          operacion = "";
+          return;
+        case '←':
           if (operacion.isNotEmpty) {
             operacion = operacion.substring(0, operacion.length - 1);
           }
-          break;
+          return;
 
         case "+":
         case "-":
         case "*":
         case "/":
-          if(numeroActual.isNotEmpty){
+          if (numeroActual.isNotEmpty) {
             elementos.add(numeroActual);
             elementos.add(valor);
             numeroActual = "";
@@ -101,22 +90,99 @@ class _CalculadoraState extends State<Calculadora>{
           }
           print(elementos);
 
-          default:
-              operacion += valor; 
-              numeroActual += valor;
+          break;
+
+        case "=":
+        //Si no hay un numero, agregue numero actual a elementos
+          if (numeroActual.isNotEmpty) {
+            elementos.add(numeroActual);
+          }
+
+          //Duplico elementos para poder modificarlo
+          calculo = List.from(elementos);
+
+          bool hayOperadores = true;
+
+          //While evalua los operadores multiplicacion y division
+          while (hayOperadores) {
+            hayOperadores = false;
+            
+            //Empieza desde 0 y va incrementeando
+            for (int i = 0; i < calculo.length; i++) {
+
+              //Evalua de izquierda a derecha si encuentra * o /
+              if (calculo[i] == "*" || calculo[i] == "/") {
+
+
+                //Hace que con "i" se remplace una posision anterior y una posision despues
+                double a = double.parse(calculo[i - 1]);
+                double b = double.parse(calculo[i + 1]);
+
+                double r = 0;
+
+                //Evalua el if si es multipliacion 
+                if (calculo[i] == "*") {
+                  r = a * b;
+
+                //Sino evalua que es division y ejecuta
+                } else {
+                  r = a / b;
+                }
+
+
+                //Remplaza en el string con el resultado de la multiplicacion o division en el rango de (i-1,i,i+1)
+                calculo.replaceRange(i - 1, i + 2, [r.toString()]);
+
+                hayOperadores = true;
+
+                break;
+              }
+            }
+          }
+
+          double total = double.parse(calculo[0]);
+
+          //Arranca con el arreglo ya FINAL para hacer la operacion de manera limpia
+          for (int i = 1; i < calculo.length; i += 2) {
+            String operador = calculo[i];
+
+            double numero = double.parse(calculo[i + 1]);
+
+            switch (operador) {
+              case "+":
+                total += numero;
+                break;
+
+              case "-":
+                total -= numero;
+                break;
+            }
+          }
+
+          resultado = total.toString();
+
+          elementos.clear();
+
+          numeroActual = resultado;
+
+          break;
+
+        default:
+          operacion += valor;
+          numeroActual += valor;
           break;
       }
-});
-}
+    });
+  }
 
-
-  
-  Widget boton (String texto){
+  Widget boton(String texto) {
     return Expanded(
       child: ElevatedButton(
         onPressed: () {
           actionBoton(texto);
-        }, 
-        child: Text(texto)));
+        },
+        child: Text(texto),
+      ),
+    );
   }
 }
