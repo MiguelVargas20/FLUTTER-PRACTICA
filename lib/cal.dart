@@ -124,7 +124,7 @@ class _CalculadoraState extends State<Calculadora> {
                 if (calculo[i] == "*") {
                   r = a * b;
 
-                //Sino evalua que es division y ejecuta
+                //Sino evalua que es division y ejecuta 
                 } else {
                   r = a / b;
                 }
