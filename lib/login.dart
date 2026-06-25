@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:fluuter_aplication_1/home.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fluuter_aplication_1/registro.dart';
@@ -33,10 +34,8 @@ class _LoginState extends State<Login> {
     passwordController.dispose();
     super.dispose();
   }
-
-  // ── FUNCIÓN DE LOGIN ───────────────────────────────────────────────
+// ── FUNCIÓN DE LOGIN ───────────────────────────────────────────────
   Future<void> login() async {
-    // Validación básica antes de llamar al backend
     if (emailController.text.trim().isEmpty ||
         passwordController.text.trim().isEmpty) {
       _mostrarSnackbar('Por favor completa todos los campos', esError: true);
@@ -50,8 +49,8 @@ class _LoginState extends State<Login> {
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'username': emailController.text.trim(),       // ajusta la clave según tu API
-          'password': passwordController.text.trim(),  // ej: 'contrasena', 'password'
+          'username': emailController.text.trim(),      
+          'password': passwordController.text.trim(),  
         }),
       );
 
@@ -59,33 +58,33 @@ class _LoginState extends State<Login> {
         // ── Login exitoso ──────────────────────────────────────────
         final Map<String, dynamic> datos = jsonDecode(response.body);
 
-        // Guarda el token y el nombre para usarlos en otras pantallas
+        // Guarda el token y el nombre en SharedPreferences
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', datos['token']);
+        await prefs.setString('token', datos['token'] ?? '');
         await prefs.setString('nombre', datos['nombreCompleto'] ?? '');
-        // Si tu backend devuelve el rol: await prefs.setString('rol', datos['rol']);
+
+        if (!mounted) return; // Buena práctica antes de usar el context tras un await
 
         _mostrarSnackbar('¡Bienvenido!', esError: false);
 
-        // Navega al Home y elimina el Login del stack
-        // Navigator.pushReplacement(
-        //   context,
-        //   MaterialPageRoute(builder: (_) => const Home()),
-        // );
+        // 2. NAVEGACIÓN ACTIVA: Redirige a Home y limpia el historial para que no pueda volver atrás al login
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const Home()),
+        );
 
       } else if (response.statusCode == 401) {
         _mostrarSnackbar('Correo o contraseña incorrectos', esError: true);
-
       } else {
         _mostrarSnackbar('Error del servidor (${response.statusCode})', esError: true);
       }
 
     } catch (e) {
-      // Error de red: backend apagado, IP incorrecta, sin internet, etc.
       _mostrarSnackbar('No se pudo conectar al servidor', esError: true);
     } finally {
-      // finally siempre se ejecuta, con éxito o con error
-      setState(() => cargando = false);
+      if (mounted) {
+        setState(() => cargando = false);
+      }
     }
   }
 
@@ -146,11 +145,11 @@ class _LoginState extends State<Login> {
 
                       const SizedBox(height: 28),
 
-                      _buildLabel('Correo electrónico'),
+                      _buildLabel('Nombre de usuario'),
                       const SizedBox(height: 6),
                       _buildTextField(
                         controller: emailController,
-                        hint: 'nombre@ejemplo.com',
+                        hint: 'juan.perez',
                         prefixIcon: Icons.mail_outline_rounded,
                         keyboardType: TextInputType.emailAddress,
                       ),
@@ -193,12 +192,10 @@ class _LoginState extends State<Login> {
 
                       const SizedBox(height: 28),
 
-                      // ── BOTÓN — ahora llama a login() ─────────────
                       SizedBox(
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          // Si está cargando, deshabilita el botón (null = deshabilitado)
                           onPressed: cargando ? null : login,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: dorado,
@@ -207,7 +204,6 @@ class _LoginState extends State<Login> {
                             elevation: 0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
-                          // Spinner o texto según el estado
                           child: cargando
                               ? const SizedBox(
                                   width: 22,
@@ -272,7 +268,7 @@ class _LoginState extends State<Login> {
     );
   }
 
-  // ── WIDGETS HELPERS (sin cambios) ──────────────────────────────────
+  // ── WIDGETS HELPERS ────────────────────────────────────────────────
 
   Widget _buildBrandHeader() {
     return Row(
@@ -303,15 +299,6 @@ class _LoginState extends State<Login> {
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey[200]!)),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: dorado, width: 1.5)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      ),
-    );
-  }
-
-  Widget _buildPrimaryButton(String label, VoidCallback onPressed) {
-    return SizedBox(width: double.infinity, height: 50,
-      child: ElevatedButton(onPressed: onPressed,
-        style: ElevatedButton.styleFrom(backgroundColor: dorado, foregroundColor: Colors.white, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-        child: Text(label, style: const TextStyle(fontSize: 14, fontFamily: 'Montserrat', fontWeight: FontWeight.bold, letterSpacing: 0.8)),
       ),
     );
   }
