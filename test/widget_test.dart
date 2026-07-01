@@ -7,8 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:fluuter_aplication_1/login.dart';
-import 'package:fluuter_aplication_1/registro.dart';
+import 'package:fluuter_aplication_1/screens/registro.dart';
 
 
 void main() {

@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:fluuter_aplication_1/login.dart';
+import 'package:fluuter_aplication_1/screens/login.dart';
+import 'package:fluuter_aplication_1/services/auth_service.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -23,15 +22,11 @@ class _RegisterState extends State<Register> {
   bool aceptaTerminos = false;
   bool cargando = false;
   int currentStep = 1;
+  double _passwordStrengthValue = 0;
 
   static const Color dorado = Color(0xFFD4AF37);
   static const Color doradoOscuro = Color(0xFF8B732A);
   static const Color fondoGris = Color(0xFFF9F9F9);
-
-  // ── Misma baseUrl que el Login ─────────────────────────────────────
-  // Emulador Android  → 'http://10.0.2.2:8080'
-  // Dispositivo físico → 'http://192.168.X.X:8080'
-  static const String baseUrl = 'http://localhost:8080';
 
   final List<Map<String, String>> tiposDocumento = [
     {'value': 'CC', 'label': 'Cédula de ciudadanía'},
@@ -40,19 +35,29 @@ class _RegisterState extends State<Register> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    passwordController.addListener(_actualizarFortaleza);
+  }
+
+  @override
   void dispose() {
+    passwordController.removeListener(_actualizarFortaleza);
     nombreController.dispose();
     apellidoController.dispose();
     numeroDocController.dispose();
-    usernameController.dispose(); 
+    usernameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
   }
 
+  void _actualizarFortaleza() {
+    setState(() {}); // solo refresca la barra de fortaleza
+  }
+
   // ── FUNCIÓN REGISTRO ───────────────────────────────────────────────
   Future<void> registrar() async {
-    // 1. Validaciones antes de tocar el backend
     if (nombreController.text.trim().isEmpty ||
         apellidoController.text.trim().isEmpty ||
         emailController.text.trim().isEmpty ||
@@ -71,70 +76,31 @@ class _RegisterState extends State<Register> {
     setState(() => cargando = true);
 
     try {
-      // 2. Armamos el JSON que espera UsuarioRegistroDto
-      //    Documento es un objeto anidado: { "tipo": "CC", "numero": "123" }
-      final Map<String, dynamic> body = {
-        "nombre": nombreController.text.trim(),
-        "apellido": apellidoController.text.trim(),
-        "documento": {
-          "tipo": tipoDocSeleccionado,        // "CC", "TI" o "CE"
-          "numero": numeroDocController.text.trim(),
-        },
-        "username": usernameController.text.trim().isEmpty
-            ? null                             // username es opcional en tu DTO
-            : usernameController.text.trim(),
-        "email": emailController.text.trim(),
-        "password": passwordController.text.trim(),
-        // telefono, direccion, fechaNacimiento, estado, roles → opcionales
-        // los puedes agregar aquí si los necesitas en el registro
-      };
-
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/usuarios/registro'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
+      await AuthService.instance.registrar(
+        nombre: nombreController.text.trim(),
+        apellido: apellidoController.text.trim(),
+        documentoTipo: tipoDocSeleccionado!,
+        documentoNumero: numeroDocController.text.trim(),
+        username: usernameController.text.trim(),
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
       );
 
-      // 3. Tu backend devuelve 201 CREATED cuando todo sale bien
-      if (response.statusCode == 201) {
-        _mostrarSnackbar('¡Cuenta creada exitosamente!', esError: false);
+      _mostrarSnackbar('¡Cuenta creada exitosamente!', esError: false);
+      await Future.delayed(const Duration(seconds: 1));
 
-        // Espera un momento para que el usuario lea el mensaje
-        await Future.delayed(const Duration(seconds: 1));
-
-        // Lleva al Login y limpia el stack de navegación
-        if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const Login()),
-            (route) => false,
-          );
-        }
-
-      } else if (response.statusCode == 400) {
-        // Spring devuelve 400 cuando falla @Valid
-        // Intentamos leer el mensaje de error del body
-        final Map<String, dynamic> error = jsonDecode(response.body);
-        final String mensaje = error['message'] ??
-            error['error'] ??
-            'Datos inválidos, revisa los campos';
-        _mostrarSnackbar(mensaje, esError: true);
-
-      } else if (response.statusCode == 409) {
-        // Conflict: email o username ya registrado
-        _mostrarSnackbar('El correo o username ya está en uso', esError: true);
-
-      } else {
-        _mostrarSnackbar(
-          'Error del servidor (${response.statusCode})',
-          esError: true,
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const Login()),
+          (route) => false,
         );
       }
+    } on ApiException catch (e) {
+      _mostrarSnackbar(e.mensaje, esError: true);
     } catch (e) {
-      // Sin conexión, backend apagado, IP incorrecta, etc.
       _mostrarSnackbar('No se pudo conectar al servidor', esError: true);
     } finally {
-      // Siempre se ejecuta, con éxito o con error
       if (mounted) setState(() => cargando = false);
     }
   }
@@ -164,7 +130,6 @@ class _RegisterState extends State<Register> {
               children: [
                 _buildBrandHeader(),
                 const SizedBox(height: 28),
-
                 Container(
                   constraints: const BoxConstraints(maxWidth: 450),
                   padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
@@ -185,12 +150,9 @@ class _RegisterState extends State<Register> {
                           style: TextStyle(fontSize: 13, color: Colors.grey[500], fontFamily: 'Montserrat'),
                         ),
                       ),
-
                       const SizedBox(height: 20),
                       _buildStepIndicator(currentStep),
                       const SizedBox(height: 24),
-
-                      // Nombre + Apellido
                       Row(
                         children: [
                           Expanded(
@@ -208,10 +170,7 @@ class _RegisterState extends State<Register> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 14),
-
-                      // Tipo doc + Número doc
                       Row(
                         children: [
                           Expanded(
@@ -228,23 +187,17 @@ class _RegisterState extends State<Register> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 14),
-
                       _buildLabeledField(
                         label: 'Username',
                         child: _buildTextField(controller: usernameController, hint: '@juan_perez (opcional)', prefixIcon: Icons.alternate_email_rounded),
                       ),
-
                       const SizedBox(height: 14),
-
                       _buildLabeledField(
                         label: 'Correo electrónico *',
                         child: _buildTextField(controller: emailController, hint: 'nombre@ejemplo.com', prefixIcon: Icons.mail_outline_rounded, keyboardType: TextInputType.emailAddress),
                       ),
-
                       const SizedBox(height: 14),
-
                       _buildLabeledField(
                         label: 'Contraseña *',
                         child: _buildTextField(
@@ -262,18 +215,8 @@ class _RegisterState extends State<Register> {
                           ),
                         ),
                       ),
-
-                      // Barra fortaleza contraseña
-                      StatefulBuilder(
-                        builder: (context, setLocalState) {
-                          passwordController.addListener(() => setLocalState(() {}));
-                          return _buildPasswordStrength(passwordController.text);
-                        },
-                      ),
-
+                      _buildPasswordStrength(passwordController.text),
                       const SizedBox(height: 18),
-
-                      // Checkbox términos
                       GestureDetector(
                         onTap: () => setState(() => aceptaTerminos = !aceptaTerminos),
                         child: Row(
@@ -307,10 +250,7 @@ class _RegisterState extends State<Register> {
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 24),
-
-                      // ── BOTÓN — llama a registrar() ───────────────
                       SizedBox(
                         width: double.infinity,
                         height: 50,
@@ -319,7 +259,7 @@ class _RegisterState extends State<Register> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: dorado,
                             foregroundColor: Colors.white,
-                            disabledBackgroundColor: dorado.withOpacity(0.6),
+                            disabledBackgroundColor: dorado.withValues(alpha: 0.6),
                             elevation: 0,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           ),
@@ -335,9 +275,7 @@ class _RegisterState extends State<Register> {
                                 ),
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
                       Center(
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -353,7 +291,6 @@ class _RegisterState extends State<Register> {
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 24),
                 Text('© 2026 GOLDENBOOKING. Todos los derechos reservados.', style: TextStyle(color: Colors.grey[400], fontSize: 11, fontFamily: 'Montserrat')),
                 const SizedBox(height: 16),
@@ -489,7 +426,7 @@ class _RegisterState extends State<Register> {
 
   Widget _buildDropdown() {
     return DropdownButtonFormField<String>(
-      value: tipoDocSeleccionado,
+      initialValue: tipoDocSeleccionado,
       hint: Text('CC / TI', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
       style: const TextStyle(fontFamily: 'Montserrat', fontSize: 13, color: Colors.black),
       decoration: InputDecoration(
@@ -513,8 +450,8 @@ class _RegisterState extends State<Register> {
     return BoxDecoration(
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
-      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 24, offset: const Offset(0, 8))],
-      border: Border.all(color: Colors.black.withOpacity(0.05)),
+      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 24, offset: const Offset(0, 8))],
+      border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
     );
   }
 }

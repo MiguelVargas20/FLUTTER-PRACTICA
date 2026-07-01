@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  dio: ^5.7.0                     # Cliente HTTP profesional (maneja interceptores y errores)
+  flutter_secure_storage: ^9.2.2  # Guarda el JWT en el llavero seguro del celular
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

@@ -88,7 +88,7 @@ class _SportsMobileScreenState extends State<SportsMobileScreen> {
             padding: const EdgeInsets.only(right: 16),
             child: CircleAvatar(
               radius: 18,
-              backgroundColor: dorado.withOpacity(0.2),
+              backgroundColor: dorado.withValues(alpha: 0.2),
               child: Icon(Icons.person, color: Colors.grey[700], size: 20),
             ),
           ),
@@ -173,7 +173,7 @@ class _SportsMobileScreenState extends State<SportsMobileScreen> {
               backgroundColor: dorado,
               foregroundColor: Colors.white,
               elevation: 3,
-              shadowColor: dorado.withOpacity(0.3),
+              shadowColor: dorado.withValues(alpha: 0.3),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), // Mismo radio de botón que tu Login
             ),
             child: const Row(
@@ -198,7 +198,7 @@ Widget _buildHeroBanner() {
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(14),
       boxShadow: [
-        BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
+        BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))
       ],
     ),
     child: ClipRRect(
@@ -220,8 +220,8 @@ Widget _buildHeroBanner() {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,  
                 colors: [
-                  Colors.black.withOpacity(0.1),
-                  Colors.black.withOpacity(0.75),
+                  Colors.black.withValues(alpha: 0.1),
+                  Colors.black.withValues(alpha: 0.75),
                 ],
               ),
             ),
@@ -277,10 +277,10 @@ Widget _buildHeroBanner() {
               decoration: BoxDecoration(
                 color: isSelected ? dorado : Colors.white,
                 borderRadius: BorderRadius.circular(12), // Redondeado consistente con el login
-                border: Border.all(color: isSelected ? dorado : Colors.black.withOpacity(0.05)),
+                border: Border.all(color: isSelected ? dorado : Colors.black.withValues(alpha: 0.05)),
                 boxShadow: [
                   BoxShadow(
-                    color: isSelected ? dorado.withOpacity(0.25) : Colors.black.withOpacity(0.03),
+                    color: isSelected ? dorado.withValues(alpha: 0.25) : Colors.black.withValues(alpha: 0.03),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   )
@@ -313,8 +313,8 @@ Widget _buildHeroBanner() {
         decoration: BoxDecoration(
           color: isSelected ? dorado : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? dorado : Colors.black.withOpacity(0.05)),
-          boxShadow: isSelected ? [BoxShadow(color: dorado.withOpacity(0.2), blurRadius: 6, offset: const Offset(0, 2))] : null,
+          border: Border.all(color: isSelected ? dorado : Colors.black.withValues(alpha: 0.05)),
+          boxShadow: isSelected ? [BoxShadow(color: dorado.withValues(alpha: 0.2), blurRadius: 6, offset: const Offset(0, 2))] : null,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -369,9 +369,9 @@ Widget _buildHeroBanner() {
                   margin: EdgeInsets.only(right: idx == 2 ? 0 : 10),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: isSelected ? dorado.withOpacity(0.1) : (isBooked ? Colors.grey[100] : Colors.white),
+                    color: isSelected ? dorado.withValues(alpha: 0.1) : (isBooked ? Colors.grey[100] : Colors.white),
                     border: Border.all(
-                      color: isSelected ? dorado : Colors.black.withOpacity(0.05),
+                      color: isSelected ? dorado : Colors.black.withValues(alpha: 0.05),
                       width: isSelected ? 1.5 : 1,
                     ),
                     borderRadius: BorderRadius.circular(10),
@@ -404,7 +404,7 @@ Widget _buildHeroBanner() {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: dorado.withOpacity(0.1),
+              color: dorado.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.sports_tennis, color: dorado, size: 22),
@@ -437,7 +437,7 @@ Widget _buildHeroBanner() {
       height: 75,
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.black.withOpacity(0.05))),
+        border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05))),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -476,7 +476,7 @@ Widget _buildHeroBanner() {
   BoxDecoration _cardDecoration() => BoxDecoration(
     color: Colors.white,
     borderRadius: BorderRadius.circular(14),
-    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 16, offset: const Offset(0, 6))],
-    border: Border.all(color: Colors.black.withOpacity(0.05)),
+    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 16, offset: const Offset(0, 6))],
+    border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
   );
 }
